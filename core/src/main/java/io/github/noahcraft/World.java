@@ -6,8 +6,8 @@ import java.util.Queue;
 public class World {
 
 
-    public static final int WORLD_LENGTH = 2048;
-    public static final int WORLD_WIDTH = 2048;
+    public static final int WORLD_LENGTH = 10000;
+    public static final int WORLD_WIDTH = 10000;
     public static final int WORLD_HEIGHT = 512, MAX_HEAT = 100;
     // Biome types
     public static final int OCEAN = 0;
@@ -23,17 +23,18 @@ public class World {
     public static final int BOREAL_FOREST = 10; // Low heat, High moisture
 
     // Thresholds
-    public static final int OCEAN_THRESHOLD = 40;       // Below this is ocean
+    public static final int OCEAN_THRESHOLD = 30;       // Below this is ocean
     public static final int MOUNTAIN_THRESHOLD = WORLD_HEIGHT - OCEAN_THRESHOLD;   // Above this is mountain
-    public static final int LOW_TEMP_THRESHOLD = 30;    // Below this is "low temperature"
-    public static final int HIGH_TEMP_THRESHOLD = 70;  // Above this is "high temperature"
-    public static final int LOW_MOISTURE_THRESHOLD = 30; // Below this is "low moisture"
-    public static final int HIGH_MOISTURE_THRESHOLD = 70; // Above this is "high moisture"
+    public static final int LOW_TEMP_THRESHOLD = 33;    // Below this is "low temperature"
+    public static final int HIGH_TEMP_THRESHOLD = 66;  // Above this is "high temperature"
+    public static final int LOW_MOISTURE_THRESHOLD = 33; // Below this is "low moisture"
+    public static final int HIGH_MOISTURE_THRESHOLD = 66; // Above this is "high moisture"
 
 
     public static final int DEFAULT_HEIGHT_VARIANCE = WORLD_HEIGHT;
     public static final int DEFAULT_HEIGHT_INCREASE = WORLD_HEIGHT/2;
     public static final int DEFAULT_TEMP_VARIANCE = 50, DEFAULT_TEMP_INCREASE = 50;
+    public static final int DEFAULT_MOIST_VARIANCE = 50, DEFAULT_MOIST_INCREASE = 50;
 
     // Add these variables to your World class
     private boolean[][] visited; // For flood fill algorithm
@@ -56,7 +57,7 @@ public class World {
     }
     public void createWorld() {
         initMaps();
-        makeLakes();
+       // makeLakes();
         biomeMap = setBiomes();
 
     }
@@ -98,9 +99,9 @@ public class World {
     }
 
     public void initMaps() {
-        initHeightMap(.05, DEFAULT_HEIGHT_VARIANCE, DEFAULT_HEIGHT_INCREASE);
-        initHeatMap(.05, DEFAULT_TEMP_VARIANCE, DEFAULT_TEMP_INCREASE);
-        initMoistMap(.05,DEFAULT_TEMP_VARIANCE,DEFAULT_TEMP_INCREASE);
+        initHeightMap(.01, DEFAULT_HEIGHT_VARIANCE, DEFAULT_HEIGHT_INCREASE);
+        initHeatMap(.03, DEFAULT_TEMP_VARIANCE, DEFAULT_TEMP_INCREASE);
+        initMoistMap(.02,DEFAULT_MOIST_VARIANCE,DEFAULT_MOIST_INCREASE);
 
     }
 
