@@ -6,8 +6,8 @@ import java.util.Queue;
 public class World {
 
 
-    public static final int WORLD_LENGTH = 10000;
-    public static final int WORLD_WIDTH = 10000;
+    public static final int WORLD_LENGTH = 5000;
+    public static final int WORLD_WIDTH = 5000;
     public static final int WORLD_HEIGHT = 512, MAX_HEAT = 100;
     // Biome types
     public static final int OCEAN = 0;
@@ -23,7 +23,7 @@ public class World {
     public static final int BOREAL_FOREST = 10; // Low heat, High moisture
 
     // Thresholds
-    public static final int OCEAN_THRESHOLD = 30;       // Below this is ocean
+    public static final int OCEAN_THRESHOLD = 150;       // Below this is ocean
     public static final int MOUNTAIN_THRESHOLD = WORLD_HEIGHT - OCEAN_THRESHOLD;   // Above this is mountain
     public static final int LOW_TEMP_THRESHOLD = 33;    // Below this is "low temperature"
     public static final int HIGH_TEMP_THRESHOLD = 66;  // Above this is "high temperature"
@@ -31,7 +31,7 @@ public class World {
     public static final int HIGH_MOISTURE_THRESHOLD = 66; // Above this is "high moisture"
 
 
-    public static final int DEFAULT_HEIGHT_VARIANCE = WORLD_HEIGHT;
+    public static final int DEFAULT_HEIGHT_VARIANCE = WORLD_HEIGHT/2;
     public static final int DEFAULT_HEIGHT_INCREASE = WORLD_HEIGHT/2;
     public static final int DEFAULT_TEMP_VARIANCE = 50, DEFAULT_TEMP_INCREASE = 50;
     public static final int DEFAULT_MOIST_VARIANCE = 50, DEFAULT_MOIST_INCREASE = 50;
@@ -40,8 +40,8 @@ public class World {
     private boolean[][] visited; // For flood fill algorithm
 
     // Lake expansion parameters
-    public static final int LAKE_EXPANSION_THRESHOLD = 100; // Height below this can become lake during expansion
-    public static final int MAX_LAKE_EXPANSIONS = 3;       // Maximum number of expansion iterations
+    public static final int LAKE_EXPANSION_THRESHOLD = 300; // Height below this can become lake during expansion
+    public static final int MAX_LAKE_EXPANSIONS = 200;       // Maximum number of expansion iterations
     public static final int SEED_POINTS = 50;              // Number of random seed points for lake expansion
 
 
@@ -57,7 +57,7 @@ public class World {
     }
     public void createWorld() {
         initMaps();
-       // makeLakes();
+       makeLakes();
         biomeMap = setBiomes();
 
     }
@@ -81,7 +81,7 @@ public class World {
     private void initHeatMap(double spread, double heatAmplitude, double heatIncrease) {
         for (int i = 0; i < WORLD_LENGTH; i++) {
             for (int j = 0; j < WORLD_WIDTH; j++) {
-                int heat = (int) (PerlinNoise.noise(i * spread, j * spread) * heatAmplitude + heatIncrease);
+                int heat = (int) (PerlinNoise.noise(i * spread + 200, j * spread + 200) * heatAmplitude + heatIncrease);
                 tempMap[i][j] = Math.max(0, Math.min(MAX_HEAT, heat));
             }
         }
@@ -91,7 +91,7 @@ public class World {
     private void initMoistMap(double spread, double moistAmplitude, double moistIncrease) {
         for (int i = 0; i < WORLD_LENGTH; i++) {
             for (int j = 0; j < WORLD_WIDTH; j++) {
-                int moisture = (int) (PerlinNoise.noise(i * spread, j * spread) * moistAmplitude + moistIncrease);
+                int moisture = (int) (PerlinNoise.noise(i * spread + 100,100 + j * spread) * moistAmplitude + moistIncrease);
                 moistMap[i][j] = Math.max(0, Math.min(MAX_HEAT, moisture));
             }
         }
@@ -100,8 +100,8 @@ public class World {
 
     public void initMaps() {
         initHeightMap(.01, DEFAULT_HEIGHT_VARIANCE, DEFAULT_HEIGHT_INCREASE);
-        initHeatMap(.03, DEFAULT_TEMP_VARIANCE, DEFAULT_TEMP_INCREASE);
-        initMoistMap(.02,DEFAULT_MOIST_VARIANCE,DEFAULT_MOIST_INCREASE);
+        initHeatMap(.01, DEFAULT_TEMP_VARIANCE, DEFAULT_TEMP_INCREASE);
+        initMoistMap(.01,DEFAULT_MOIST_VARIANCE,DEFAULT_MOIST_INCREASE);
 
     }
 
