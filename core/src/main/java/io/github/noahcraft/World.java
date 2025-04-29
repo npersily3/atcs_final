@@ -42,7 +42,8 @@ public class World {
     // Lake expansion parameters
     public static final int LAKE_EXPANSION_THRESHOLD = 300; // Height below this can become lake during expansion
     public static final int MAX_LAKE_EXPANSIONS = 200;       // Maximum number of expansion iterations
-    public static final int SEED_POINTS = 50;              // Number of random seed points for lake expansion
+    public static final int SEED_POINTS = 50;// Number of random seed points for lake expansion
+    public static final int LAKE_AMOUNT = 50;
 
 
     private int[][] heightMap;
@@ -59,6 +60,8 @@ public class World {
         initMaps();
        makeLakes();
         biomeMap = setBiomes();
+        RiverGenerator riverGenerator = new RiverGenerator(heightMap,biomeMap,WORLD_WIDTH, WORLD_LENGTH);
+        riverGenerator.generateRivers(LAKE_AMOUNT);
 
     }
 
