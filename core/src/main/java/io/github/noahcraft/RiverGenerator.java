@@ -1,4 +1,5 @@
 package io.github.noahcraft;
+
 import com.badlogic.gdx.math.Vector2;
 
 import java.awt.*;
@@ -54,10 +55,10 @@ public class RiverGenerator {
 
             // Find a suitable starting point (higher elevation)
             Vector2 source = findRiverSource();
-       //     System.out.print(source.x + "   " + source.y + "  Destination  ");
+            //     System.out.print(source.x + "   " + source.y + "  Destination  ");
             // Find a suitable end point (lower elevation, ideally water)
             Vector2 destination = findRiverDestination(source);
-         //   System.out.println(destination.x + "   " + destination.y);
+            //   System.out.println(destination.x + "   " + destination.y);
             // Generate river path with maximum iteration limit
             River river = generateRiverPath(source, destination);
 
@@ -66,12 +67,12 @@ public class RiverGenerator {
                 successfulRivers++;
 
                 // Apply erosion to height map along river
-               // applyRiverErosion(river, biomeMap, World.RIVER);
+                // applyRiverErosion(river, biomeMap, World.RIVER);
 
                 updateMap(river, World.RIVER);
                 // Log progress for large maps
                 if (width * length > 1000000 && successfulRivers % 10 == 0) {
-                //    System.out.println("Generated " + successfulRivers + " rivers out of " + riverCount);
+                    //    System.out.println("Generated " + successfulRivers + " rivers out of " + riverCount);
                 }
             }
         }
@@ -118,7 +119,7 @@ public class RiverGenerator {
             int y = random.nextInt(length);
 
             // Don't choose starting point as destination
-            if (x == (int)source.x && y == (int)source.y) {
+            if (x == (int) source.x && y == (int) source.y) {
                 continue;
             }
 
@@ -180,8 +181,8 @@ public class RiverGenerator {
 
             // Explore neighbors
             for (int[] dir : directions) {
-                int nx = (int)current.position.x + dir[0];
-                int ny = (int)current.position.y + dir[1];
+                int nx = (int) current.position.x + dir[0];
+                int ny = (int) current.position.y + dir[1];
 
                 // Check bounds
                 if (nx < 0 || nx >= width || ny < 0 || ny >= length) {
@@ -189,7 +190,7 @@ public class RiverGenerator {
                 }
 
                 // Calculate cost based on elevation change - rivers prefer to flow downhill
-                float currentElevation = heightMap[(int)current.position.x][(int)current.position.y];
+                float currentElevation = heightMap[(int) current.position.x][(int) current.position.y];
                 float neighborElevation = heightMap[nx][ny];
                 float elevationDiff = neighborElevation - currentElevation;
                 float moveCost = 1.0f;
@@ -242,10 +243,10 @@ public class RiverGenerator {
 
     private boolean isDestinationReached(Vector2 current, Vector2 destination) {
         // Consider destination reached if exact match or very close
-        int currentX = (int)current.x;
-        int currentY = (int)current.y;
-        int destX = (int)destination.x;
-        int destY = (int)destination.y;
+        int currentX = (int) current.x;
+        int currentY = (int) current.y;
+        int destX = (int) destination.x;
+        int destY = (int) destination.y;
 
         // Check exact match
         if (currentX == destX && currentY == destY) {
@@ -253,23 +254,20 @@ public class RiverGenerator {
         }
 
         // For large maps, accept being close to destination or reaching any water
-        if (width * length > 1000000) {
-            // Accept water tiles
-            if (biomeMap[currentX][currentY] == World.OCEAN) {
-                return true;
-            }
 
-            // Accept being within reasonable distance
-            int manhattanDistance = Math.abs(currentX - destX) + Math.abs(currentY - destY);
-            if (manhattanDistance <= 100) {
-                return true;
-            }
+        if (biomeMap[currentX][currentY] == World.OCEAN) {
+            return true;
         }
 
+        // Accept being within reasonable distance
+        int manhattanDistance = Math.abs(currentX - destX) + Math.abs(currentY - destY);
+        if (manhattanDistance <= 200) {
+            return true;
+        }
         return false;
-
-
     }
+
+
     private void updateMap(River river, int id) {
         List<Vector2> points = river.points;
         int width = river.width;
@@ -280,15 +278,15 @@ public class RiverGenerator {
             int y = (int) point.y;
 
             // Apply the width by updating surrounding cells
-            for (int i = -width/2; i <= width/2; i++) {
-                for (int j = -width/2; j <= width/2; j++) {
+            for (int i = -width / 2; i <= width / 2; i++) {
+                for (int j = -width / 2; j <= width / 2; j++) {
                     int newX = x + i;
                     int newY = y + j;
 
                     // Check if the point is within bounds of the biomeMap
                     if (newX >= 0 && newX < biomeMap.length && newY >= 0 && newY < biomeMap[0].length) {
                         // Check if the point is within the radius (for circular/rounded rivers)
-                        if (i*i + j*j <= (width/2)*(width/2)) {
+                        if (i * i + j * j <= (width / 2) * (width / 2)) {
                             biomeMap[newX][newY] = id;
                         }
                     }
@@ -358,7 +356,7 @@ public class RiverGenerator {
         // Use Euclidean distance for better pathfinding
         float dx = a.x - b.x;
         float dy = a.y - b.y;
-        return (float)Math.sqrt(dx*dx + dy*dy);
+        return (float) Math.sqrt(dx * dx + dy * dy);
     }
 
     private String nodeKey(Node node) {
@@ -366,7 +364,7 @@ public class RiverGenerator {
     }
 
     private String nodeKey(Vector2 position) {
-        return (int)position.x + "," + (int)position.y;
+        return (int) position.x + "," + (int) position.y;
     }
 
     // Helper class for A* pathfinding

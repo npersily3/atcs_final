@@ -44,7 +44,7 @@ public class World {
     public static final int LAKE_EXPANSION_THRESHOLD = 300; // Height below this can become lake during expansion
     public static final int MAX_LAKE_EXPANSIONS = 200;       // Maximum number of expansion iterations
     public static final int SEED_POINTS = 50;// Number of random seed points for lake expansion
-    public static final int RIVER_AMOUNT = 200;
+    public static final int RIVER_AMOUNT = 50;
 
 
     private int[][] heightMap;
@@ -122,6 +122,7 @@ public class World {
 
                 // Check extreme elevation conditions first
                 if (elevation < OCEAN_THRESHOLD) {
+
                     biomeMap[x][y] = OCEAN;
                     continue;
                 }
