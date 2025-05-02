@@ -16,7 +16,7 @@ public class RiverGenerator {
     private Random random;
 
     // Maximum iterations for pathfinding to prevent infinite loops
-    private static final int MAX_ITERATIONS = Integer.MAX_VALUE;
+    private static final int MAX_ITERATIONS = 1000000;
 
     // Parameters to control river generation
     private static final float UPHILL_PENALTY = 10.0f;
@@ -76,7 +76,7 @@ public class RiverGenerator {
             }
         }
 
-     //   System.out.println("Successfully generated " + successfulRivers + " rivers out of " + riverCount + " requested");
+        System.out.println("Successfully generated " + successfulRivers + " rivers out of " + riverCount + " requested");
     }
 
     private Vector2 findRiverSource() {
