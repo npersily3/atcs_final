@@ -23,7 +23,7 @@ public class Main extends ApplicationAdapter {
     // Visible portion of the world
     private static final int DISPLAY_WIDTH = 512;
     private static final int DISPLAY_HEIGHT = 512;
-
+    private float cameraSpeed = 5f; // Adjust for panning speed
     private OrthographicCamera camera;
     private SpriteBatch batch;
     private Texture mapTexture;
@@ -48,12 +48,13 @@ public class Main extends ApplicationAdapter {
             new Color(0.2f, 0.6f, 0.1f, 1.0f),      // SEASONAL_FOREST - Forest Green
             new Color(0.9f, 0.9f, 0.9f, 1.0f),      // TUNDRA - Snow White
             new Color(0.7f, 0.8f, 0.7f, 1.0f),      // TAIGA - Light Gray Green
-            new Color(0.1f, 0.4f, 0.2f, 1.0f)       // BOREAL_FOREST - Dark Green
+            new Color(0.1f, 0.4f, 0.2f, 1.0f),      // BOREAL_FOREST - Dark Green
+            new Color(Color.CYAN)
     };
 
     private static final String[] BIOME_NAMES = {
             "Ocean", "Mountain", "Desert", "Savanna", "Rainforest",
-            "Plains", "Grassland", "Seasonal Forest", "Tundra", "Taiga", "Boreal Forest"
+            "Plains", "Grassland", "Seasonal Forest", "Tundra", "Taiga", "Boreal Forest", "River"
     };
 
     @Override
@@ -74,11 +75,18 @@ public class Main extends ApplicationAdapter {
         biomeMap = world.getBiomeMap();
 
         // Create pixmap and render the biome map
-        pixmap = new Pixmap(DISPLAY_WIDTH, DISPLAY_HEIGHT, Pixmap.Format.RGBA8888);
+        // Create pixmap with the size of the entire world
+        pixmap = new Pixmap(World.WORLD_WIDTH, World.WORLD_LENGTH, Pixmap.Format.RGBA8888);
         renderBiomeMap();
 
-        // Create texture from pixmap
+        // Create texture from the full-sized pixmap
         mapTexture = new Texture(pixmap);
+
+        // Initialize camera to view a portion of the world
+        camera = new OrthographicCamera();
+        camera.setToOrtho(false, VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
+        camera.position.set(World.WORLD_WIDTH / 2f, World.WORLD_LENGTH / 2f, 0); // Center the camera
+        camera.update();
 
         // Initialize stage for UI
         stage = new Stage(new ScreenViewport());
@@ -93,12 +101,11 @@ public class Main extends ApplicationAdapter {
         int startX = 0;
         int startY = 0;
 
-        for (int x = 0; x < DISPLAY_WIDTH; x++) {
-            for (int y = 0; y < DISPLAY_HEIGHT; y++) {
-                int worldX = (startX + x) % World.WORLD_WIDTH;
-                int worldY = (startY + y) % World.WORLD_LENGTH;
+        for (int x = 0; x < World.WORLD_WIDTH; x++) {
+            for (int y = 0; y < World.WORLD_LENGTH; y++) {
 
-                int biomeType = biomeMap[worldX][worldY];
+
+                int biomeType = biomeMap[x][y];
                 Color color = BIOME_COLORS[biomeType];
 
                 pixmap.setColor(color);
@@ -139,20 +146,45 @@ public class Main extends ApplicationAdapter {
 
         stage.addActor(biomeTable);
     }
+    private void handleInput() {
+        if (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.LEFT)) {
+            camera.translate(-cameraSpeed, 0);
+        }
+        if (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.RIGHT)) {
+            camera.translate(cameraSpeed, 0);
+        }
+        if (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.UP)) {
+            camera.translate(0, cameraSpeed);
+        }
+        if (Gdx.input.isKeyPressed(com.badlogic.gdx.Input.Keys.DOWN)) {
+            camera.translate(0, -cameraSpeed);
+        }
 
+        // Mouse panning (drag with left button)
+        if (Gdx.input.isButtonPressed(com.badlogic.gdx.Input.Buttons.LEFT)) {
+            camera.translate(-Gdx.input.getDeltaX(), Gdx.input.getDeltaY());
+        }
+
+        // Keep camera within world bounds (optional but recommended)
+        float halfViewportWidth = VIEWPORT_WIDTH / 2f;
+        float halfViewportHeight = VIEWPORT_HEIGHT / 2f;
+        camera.position.x = Math.max(halfViewportWidth, Math.min(camera.position.x, World.WORLD_WIDTH - halfViewportWidth));
+        camera.position.y = Math.max(halfViewportHeight, Math.min(camera.position.y, World.WORLD_LENGTH - halfViewportHeight));
+    }
     @Override
     public void render() {
         // Clear screen
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        // Update camera
+        // Update camera based on input (see next step)
+        handleInput();
         camera.update();
         batch.setProjectionMatrix(camera.combined);
 
-        // Draw terrain texture
+        // Draw the entire world texture
         batch.begin();
-        batch.draw(mapTexture, 0, 0, VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
+        batch.draw(mapTexture, 0, 0); // Draw at (0,0) with its full size
         batch.end();
 
         // Draw UI

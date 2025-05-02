@@ -20,7 +20,8 @@ public class World {
     public static final int SEASONAL_FOREST = 7; // Medium heat, High moisture
     public static final int TUNDRA = 8;          // Low heat, Low moisture
     public static final int TAIGA = 9;           // Low heat, Medium moisture
-    public static final int BOREAL_FOREST = 10; // Low heat, High moisture
+    public static final int BOREAL_FOREST = 10;
+    public static final int RIVER = 11;// Low heat, High moisture
 
     // Thresholds
     public static final int OCEAN_THRESHOLD = 150;       // Below this is ocean
@@ -43,7 +44,7 @@ public class World {
     public static final int LAKE_EXPANSION_THRESHOLD = 300; // Height below this can become lake during expansion
     public static final int MAX_LAKE_EXPANSIONS = 200;       // Maximum number of expansion iterations
     public static final int SEED_POINTS = 50;// Number of random seed points for lake expansion
-    public static final int LAKE_AMOUNT = 50;
+    public static final int RIVER_AMOUNT = 200;
 
 
     private int[][] heightMap;
@@ -61,7 +62,7 @@ public class World {
        makeLakes();
         biomeMap = setBiomes();
         RiverGenerator riverGenerator = new RiverGenerator(heightMap,biomeMap,WORLD_WIDTH, WORLD_LENGTH);
-        riverGenerator.generateRivers(LAKE_AMOUNT);
+        riverGenerator.generateRivers(RIVER_AMOUNT);
 
     }
 
@@ -102,9 +103,9 @@ public class World {
     }
 
     public void initMaps() {
-        initHeightMap(.01, DEFAULT_HEIGHT_VARIANCE, DEFAULT_HEIGHT_INCREASE);
-        initHeatMap(.01, DEFAULT_TEMP_VARIANCE, DEFAULT_TEMP_INCREASE);
-        initMoistMap(.01,DEFAULT_MOIST_VARIANCE,DEFAULT_MOIST_INCREASE);
+        initHeightMap(.005, DEFAULT_HEIGHT_VARIANCE, DEFAULT_HEIGHT_INCREASE);
+        initHeatMap(.005, DEFAULT_TEMP_VARIANCE, DEFAULT_TEMP_INCREASE);
+        initMoistMap(.005,DEFAULT_MOIST_VARIANCE,DEFAULT_MOIST_INCREASE);
 
     }
 
@@ -180,8 +181,8 @@ public class World {
      */
     public void makeLakes() {
         // Create a smaller subset of the world to process for performance
-        int subsetWidth = 1024; // Use a subset of the world for reasonable processing time
-        int subsetLength = 1024;
+        int subsetWidth = WORLD_WIDTH/4; // Use a subset of the world for reasonable processing time
+        int subsetLength = WORLD_LENGTH/4;
 
         // Initialize visited array for flood fill
         visited = new boolean[subsetWidth][subsetLength];
