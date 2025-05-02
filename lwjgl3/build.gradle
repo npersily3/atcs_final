@@ -31,6 +31,9 @@ if (JavaVersion.current().isJava9Compatible()) {
 dependencies {
   implementation "com.badlogicgames.gdx:gdx-backend-lwjgl3:$gdxVersion"
   implementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
+  implementation "com.badlogicgames.gdx:gdx:$gdxVersion"
+  implementation "com.badlogicgames.gdx:gdx-backend-lwjgl3:$gdxVersion"
+  implementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:lwjgl3"
   implementation project(':core')
   implementation("com.badlogicgames.gdx:gdx-tools:$gdxVersion"){exclude group: 'com.badlogicgames.gdx', module: 'gdx-backend-lwjgl'}
 

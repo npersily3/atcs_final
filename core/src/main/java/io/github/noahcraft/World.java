@@ -255,6 +255,9 @@ public class World {
             visited[x][y] = true;
         }
     }
+    public int[][] getHeightMap() {
+        return heightMap;
+    }
     private static class Point {
         int x, y;
 

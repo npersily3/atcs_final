@@ -57,10 +57,10 @@ public class RiverGenerator {
             Vector2 source = findRiverSource();
             //     System.out.print(source.x + "   " + source.y + "  Destination  ");
             // Find a suitable end point (lower elevation, ideally water)
-            Vector2 destination = findRiverDestination(source);
+         //   Vector2 destination = findRiverDestination(source);
             //   System.out.println(destination.x + "   " + destination.y);
             // Generate river path with maximum iteration limit
-            River river = generateRiverPath(source, destination);
+            River river = generateRiverPath(source);
 
             if (river != null && river.points.size() > 5) { // Ensure river is substantial
                 rivers.add(river);
@@ -106,41 +106,41 @@ public class RiverGenerator {
         return source;
     }
 
-    private Vector2 findRiverDestination(Vector2 source) {
-        // Find a suitable low elevation point for river destination
-        Vector2 destination = new Vector2();
-        float lowestElevation = Float.MAX_VALUE;
+//    private Vector2 findRiverDestination(Vector2 source) {
+//        // Find a suitable low elevation point for river destination
+//        Vector2 destination = new Vector2();
+//        float lowestElevation = Float.MAX_VALUE;
+//
+//        // For very large maps, sample fewer points to improve performance
+//        int sampleCount = Math.min(100, width * length / 2500);
+//
+//        for (int attempt = 0; attempt < sampleCount; attempt++) {
+//            int x = random.nextInt(width);
+//            int y = random.nextInt(length);
+//
+//            // Don't choose starting point as destination
+//            if (x == (int) source.x && y == (int) source.y) {
+//                continue;
+//            }
+//
+//            // Prefer points at map borders (simulating oceans)
+//            float borderBonus = 0;
+//            if (x < width * 0.1 || x > width * 0.9 || y < length * 0.1 || y > length * 0.9) {
+//                borderBonus = 0.1f;
+//            }
+//
+//            // Make sure we're actually looking at the height value
+//            int elevation = heightMap[x][y];
+//            if (elevation - borderBonus < lowestElevation) {
+//                lowestElevation = elevation - borderBonus;
+//                destination.set(x, y);
+//            }
+//        }
+//
+//        return destination;
+//    }
 
-        // For very large maps, sample fewer points to improve performance
-        int sampleCount = Math.min(100, width * length / 2500);
-
-        for (int attempt = 0; attempt < sampleCount; attempt++) {
-            int x = random.nextInt(width);
-            int y = random.nextInt(length);
-
-            // Don't choose starting point as destination
-            if (x == (int) source.x && y == (int) source.y) {
-                continue;
-            }
-
-            // Prefer points at map borders (simulating oceans)
-            float borderBonus = 0;
-            if (x < width * 0.1 || x > width * 0.9 || y < length * 0.1 || y > length * 0.9) {
-                borderBonus = 0.1f;
-            }
-
-            // Make sure we're actually looking at the height value
-            int elevation = heightMap[x][y];
-            if (elevation - borderBonus < lowestElevation) {
-                lowestElevation = elevation - borderBonus;
-                destination.set(x, y);
-            }
-        }
-
-        return destination;
-    }
-
-    private River generateRiverPath(Vector2 source, Vector2 destination) {
+    private River generateRiverPath(Vector2 source) {
         // A* pathfinding algorithm with terrain-aware cost function
         PriorityQueue<Node> openSet = new PriorityQueue<>(Comparator.comparingDouble(n -> n.fScore));
         Map<String, Node> allNodes = new HashMap<>();
@@ -152,7 +152,7 @@ public class RiverGenerator {
 
         Node startNode = new Node(source);
         startNode.gScore = 0;
-        startNode.fScore = heuristic(source, destination);
+        startNode.fScore = heuristic(source);
 
         openSet.add(startNode);
         allNodes.put(nodeKey(startNode), startNode);
@@ -168,9 +168,9 @@ public class RiverGenerator {
             Node current = openSet.poll();
 
             // If we found destination or are close enough
-            if (isDestinationReached(current.position, destination)) {
+            if (isDestinationReached(current.position)) {
                 // Reconstruct path
-                River river = new River(10); // Random width
+                River river = new River(1); // Random width
                 Node node = current;
                 while (node != null) {
                     river.points.add(0, new Vector2(node.position));
@@ -208,10 +208,6 @@ public class RiverGenerator {
                     moveCost *= DIAGONAL_COST;
                 }
 
-                // Large penalty for tiles that are already rivers to avoid overlapping
-                if (biomeMap[nx][ny] == World.OCEAN) {
-                    moveCost += 50.0f;
-                }
 
                 Vector2 neighborPos = new Vector2(nx, ny);
                 String neighborKey = nodeKey(neighborPos);
@@ -223,7 +219,7 @@ public class RiverGenerator {
                 if (tentativeGScore < neighborNode.gScore) {
                     neighborNode.cameFrom = current;
                     neighborNode.gScore = tentativeGScore;
-                    neighborNode.fScore = tentativeGScore + heuristic(neighborPos, destination);
+                    neighborNode.fScore = tentativeGScore + heuristic(neighborPos);
 
                     allNodes.put(neighborKey, neighborNode);
 
@@ -241,17 +237,10 @@ public class RiverGenerator {
         return null;
     }
 
-    private boolean isDestinationReached(Vector2 current, Vector2 destination) {
+    private boolean isDestinationReached(Vector2 current) {
         // Consider destination reached if exact match or very close
         int currentX = (int) current.x;
         int currentY = (int) current.y;
-        int destX = (int) destination.x;
-        int destY = (int) destination.y;
-
-        // Check exact match
-        if (currentX == destX && currentY == destY) {
-            return true;
-        }
 
         // For large maps, accept being close to destination or reaching any water
 
@@ -259,17 +248,14 @@ public class RiverGenerator {
             return true;
         }
 
-        // Accept being within reasonable distance
-        int manhattanDistance = Math.abs(currentX - destX) + Math.abs(currentY - destY);
-        if (manhattanDistance <= 200) {
-            return true;
-        }
+
         return false;
     }
 
 
     private void updateMap(River river, int id) {
         List<Vector2> points = river.points;
+        river.width = points.size() / 10;
         int width = river.width;
 
         // Process each point in the river
@@ -352,11 +338,9 @@ public class RiverGenerator {
     }
 */
 
-    private float heuristic(Vector2 a, Vector2 b) {
+    private float heuristic(Vector2 a) {
         // Use Euclidean distance for better pathfinding
-        float dx = a.x - b.x;
-        float dy = a.y - b.y;
-        return (float) Math.sqrt(dx * dx + dy * dy);
+        return (float) a.y - World.OCEAN_THRESHOLD;
     }
 
     private String nodeKey(Node node) {
