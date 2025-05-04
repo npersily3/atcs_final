@@ -1,13 +1,16 @@
-package io.github.noahcraft;
+package main.java.io.github.noahcraft;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.graphics.g3d.*;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
-import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
+import com.badlogic.gdx.graphics.g3d.model.Node;
+import com.badlogic.gdx.graphics.g3d.model.NodePart;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
+import com.badlogic.gdx.graphics.g3d.utils.shapebuilders.BoxShapeBuilder;
 import com.badlogic.gdx.graphics.VertexAttributes;
+import com.badlogic.gdx.math.Matrix4;
 
 public class WorldRenderer3D {
     private PerspectiveCamera camera;
@@ -70,11 +73,33 @@ public class WorldRenderer3D {
                 Color color = BIOME_COLORS[biomeType];
 
                 // Create the top block
-                modelBuilder.part("top_" + x + "_" + z, GL20.GL_TRIANGLES,
-                        VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.ColorPacked,
-                        new com.badlogic.gdx.graphics.g3d.utils.shape.Box(BLOCK_SIZE, BLOCK_SIZE * VERTICAL_SCALE, BLOCK_SIZE))
-                    .setColor(color)
-                    .transform.translate(x * BLOCK_SIZE, height * BLOCK_SIZE * VERTICAL_SCALE, z * BLOCK_SIZE);
+                Model topBlock = createBox(
+                    BLOCK_SIZE,
+                    BLOCK_SIZE * VERTICAL_SCALE,
+                    BLOCK_SIZE,
+                    color
+                );
+                ModelInstance topBlockInstance = new ModelInstance(topBlock);
+                topBlockInstance.transform.translate(
+                    x * BLOCK_SIZE,
+                    height * BLOCK_SIZE * VERTICAL_SCALE,
+                    z * BLOCK_SIZE
+                );
+
+                String topNodeId = "top_" + x + "_" + z;
+                Node topNode = modelBuilder.node();
+                topNode.id = topNodeId;
+                topNode.translation.set(
+                    x * BLOCK_SIZE,
+                    height * BLOCK_SIZE * VERTICAL_SCALE,
+                    z * BLOCK_SIZE
+                );
+
+                for (Node childNode : topBlockInstance.nodes) {
+                    for (NodePart nodePart : childNode.parts) {
+                        topNode.parts.add(nodePart);
+                    }
+                }
 
                 // Calculate the lowest neighbor's height
                 int lowestNeighborHeight = height;
@@ -93,18 +118,59 @@ public class WorldRenderer3D {
                 // Create the vertical connection if there's a height difference
                 float heightDifference = (height - lowestNeighborHeight) * BLOCK_SIZE * VERTICAL_SCALE;
                 if (heightDifference > 0) {
-                    modelBuilder.part("vertical_" + x + "_" + z, GL20.GL_TRIANGLES,
-                            VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.ColorPacked,
-                            new com.badlogic.gdx.graphics.g3d.utils.shape.Box(BLOCK_SIZE * 0.8f, heightDifference, BLOCK_SIZE * 0.8f)) // Slightly thinner
-                        .setColor(color)
-                        .transform.translate(x * BLOCK_SIZE, (height + lowestNeighborHeight) * BLOCK_SIZE * VERTICAL_SCALE / 2f, z * BLOCK_SIZE);
+                    Model verticalBlock = createBox(
+                        BLOCK_SIZE * 0.8f,
+                        heightDifference,
+                        BLOCK_SIZE * 0.8f,
+                        color
+                    );
+                    ModelInstance verticalBlockInstance = new ModelInstance(verticalBlock);
+                    verticalBlockInstance.transform.translate(
+                        x * BLOCK_SIZE,
+                        (height + lowestNeighborHeight) * BLOCK_SIZE * VERTICAL_SCALE / 2f,
+                        z * BLOCK_SIZE
+                    );
+
+                    String verticalNodeId = "vertical_" + x + "_" + z;
+                    Node verticalNode = modelBuilder.node();
+                    verticalNode.id = verticalNodeId;
+                    verticalNode.translation.set(
+                        x * BLOCK_SIZE,
+                        (height + lowestNeighborHeight) * BLOCK_SIZE * VERTICAL_SCALE / 2f,
+                        z * BLOCK_SIZE
+                    );
+
+                    for (Node childNode : verticalBlockInstance.nodes) {
+                        for (NodePart nodePart : childNode.parts) {
+                            verticalNode.parts.add(nodePart);
+                        }
+                    }
+
+                    // Dispose of the temporary model
+                    verticalBlock.dispose();
                 }
+
+                // Dispose of the temporary model
+                topBlock.dispose();
             }
         }
 
         worldModel = modelBuilder.end();
         worldInstance = new ModelInstance(worldModel);
         modelBatch = new ModelBatch();
+    }
+
+    /**
+     * Helper method to create a box model with the specified dimensions and color
+     */
+    private Model createBox(float width, float height, float depth, Color color) {
+        ModelBuilder modelBuilder = new ModelBuilder();
+
+        return modelBuilder.createBox(
+            width, height, depth,
+            new Material(ColorAttribute.createDiffuse(color)),
+            VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal
+        );
     }
 
     public void render() {

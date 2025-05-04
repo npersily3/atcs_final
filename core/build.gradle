@@ -1,11 +1,12 @@
-[compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
-eclipse.project.name = appName + '-core'
+// This file should be very minimal as most configuration happens in the root build.gradle
+apply plugin: "java-library"
 
-dependencies {
-  api "com.badlogicgames.gdx:gdx-ai:$aiVersion"
-  api "com.badlogicgames.gdx:gdx:$gdxVersion"
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
-  if(enableGraalNative == 'true') {
-    implementation "io.github.berstanio:gdx-svmhelper-annotations:$graalHelperVersion"
-  }
+sourceSets.main.java.srcDirs = [ "src/" ]
+sourceSets.main.resources.srcDirs = [ "../assets/" ]
+
+eclipse.project {
+  name = appName + "-core"
 }

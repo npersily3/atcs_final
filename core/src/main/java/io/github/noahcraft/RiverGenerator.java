@@ -1,4 +1,4 @@
-package io.github.noahcraft;
+package main.java.io.github.noahcraft;
 
 import com.badlogic.gdx.math.Vector2;
 

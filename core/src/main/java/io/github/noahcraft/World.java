@@ -1,4 +1,4 @@
-package io.github.noahcraft;
+package main.java.io.github.noahcraft;
 
 import java.util.LinkedList;
 import java.util.Queue;
@@ -22,6 +22,11 @@ public class World {
     public static final int TAIGA = 9;           // Low heat, Medium moisture
     public static final int BOREAL_FOREST = 10;
     public static final int RIVER = 11;// Low heat, High moisture
+    public static final int[] ALL_BIOMES = {
+        OCEAN, MOUNTAIN, DESERT, SAVANNA, RAINFOREST,
+        PLAINS, GRASSLAND, SEASONAL_FOREST, TUNDRA, TAIGA,
+        BOREAL_FOREST, RIVER
+    };
 
     // Thresholds
     public static final int OCEAN_THRESHOLD = 150;       // Below this is ocean

@@ -1,4 +1,4 @@
-package io.github.noahcraft;
+package main.java.io.github.noahcraft;
 
 public class PerlinNoise {
     // Hash lookup table as defined by Ken Perlin
