@@ -60,7 +60,7 @@ public class TerrainCameraController extends InputAdapter {
     }
 
     public void update() {
-        float speed = 10f;
+        float speed = 100f;
         if (Gdx.input.isKeyPressed(Input.Keys.W)) camera.translate(camera.direction.cpy().scl(speed));
         if (Gdx.input.isKeyPressed(Input.Keys.S)) camera.translate(camera.direction.cpy().scl(-speed));
         if (Gdx.input.isKeyPressed(Input.Keys.A)) camera.translate(camera.direction.cpy().crs(camera.up).nor().scl(-speed));

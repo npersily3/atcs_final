@@ -29,8 +29,8 @@ public class World {
     };
 
     // Thresholds
-    public static final int OCEAN_THRESHOLD = 150;       // Below this is ocean
-    public static final int MOUNTAIN_THRESHOLD = WORLD_HEIGHT - OCEAN_THRESHOLD;   // Above this is mountain
+    public static final int OCEAN_THRESHOLD = 185;       // Below this is ocean
+    public static final int MOUNTAIN_THRESHOLD = WORLD_HEIGHT - 150;   // Above this is mountain
     public static final int LOW_TEMP_THRESHOLD = 33;    // Below this is "low temperature"
     public static final int HIGH_TEMP_THRESHOLD = 66;  // Above this is "high temperature"
     public static final int LOW_MOISTURE_THRESHOLD = 33; // Below this is "low moisture"
@@ -52,6 +52,70 @@ public class World {
     public static final int RIVER_AMOUNT = 50;
 
 
+    private float seaLevel;
+    private float heat;
+    private float rainfall;
+    private int riverAmount;
+    private float elevationVariance;
+    private float heatVariance;
+    private float rainVariance;
+
+    public float getSeaLevel() {
+        return seaLevel;
+    }
+
+    public void setSeaLevel(float seaLevel) {
+        this.seaLevel = seaLevel;
+    }
+
+    public float getHeat() {
+        return heat;
+    }
+
+    public void setHeat(float heat) {
+        this.heat = heat;
+    }
+
+    public float getRainfall() {
+        return rainfall;
+    }
+
+    public void setRainfall(float rainfall) {
+        this.rainfall = rainfall;
+    }
+
+    public int getRiverAmount() {
+        return riverAmount;
+    }
+
+    public void setRiverAmount(int riverAmount) {
+        this.riverAmount = riverAmount;
+    }
+
+    public float getElevationVariance() {
+        return elevationVariance;
+    }
+
+    public void setElevationVariance(float elevationVariance) {
+        this.elevationVariance = elevationVariance;
+    }
+
+    public float getHeatVariance() {
+        return heatVariance;
+    }
+
+    public void setHeatVariance(float heatVariance) {
+        this.heatVariance = heatVariance;
+    }
+
+    public float getRainVariance() {
+        return rainVariance;
+    }
+
+    public void setRainVariance(float rainVariance) {
+        this.rainVariance = rainVariance;
+    }
+
     private int[][] heightMap;
     private int[][] tempMap;
     private int[][] biomeMap;
@@ -67,7 +131,7 @@ public class World {
        makeLakes();
         biomeMap = setBiomes();
         RiverGenerator riverGenerator = new RiverGenerator(heightMap,biomeMap,WORLD_WIDTH, WORLD_LENGTH);
-      //  riverGenerator.generateRivers(RIVER_AMOUNT);
+        riverGenerator.generateRivers(RIVER_AMOUNT);
 
     }
 

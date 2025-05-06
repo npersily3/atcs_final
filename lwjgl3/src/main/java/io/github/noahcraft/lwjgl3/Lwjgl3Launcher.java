@@ -13,7 +13,7 @@ public class Lwjgl3Launcher {
         // Add JVM argument for larger heap size
         if (System.getProperty("java.vm.vendor", "").contains("Oracle") ||
             System.getProperty("java.vm.name", "").contains("OpenJDK")) {
-            System.out.println("For larger heap size, run with: -Xmx2048m or higher");
+           // System.out.println("For larger heap size, run with: -Xmx2048m or higher");
         }
 
         if (io.github.noahcraft.lwjgl3.StartupHelper.startNewJvmIfRequired()) return; // This handles macOS support and helps on Windows.

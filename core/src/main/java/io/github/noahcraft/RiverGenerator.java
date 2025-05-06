@@ -17,11 +17,11 @@ public class RiverGenerator {
     private Random random;
 
     // Maximum iterations for pathfinding to prevent infinite loops
-    private static final int MAX_ITERATIONS = 1000000;
+    private static final int MAX_ITERATIONS = 100000;
 
     // Parameters to control river generation
-    private static final float UPHILL_PENALTY = 10.0f;
-    private static final float DOWNHILL_BONUS = 0.5f;
+    private static final float UPHILL_PENALTY = 20.0f;
+    private static final float DOWNHILL_BONUS = 0.1f;
     private static final float DIAGONAL_COST = 1.414f;
 
     // River data structure

@@ -129,7 +129,8 @@ public class TerrainRenderer {
         // Create model and instance
         Model model = mb.end();
         instance = new ModelInstance(model);
-
+        float scale = 10f;
+        instance.transform.scale(scale,scale,scale);
         // Print statistics
         System.out.println("Quad count per biome group:");
         for (int i = 0; i < NUM_BIOME_GROUPS; i++) {
@@ -186,7 +187,7 @@ public class TerrainRenderer {
             case TUNDRA:         return new Color(0.9f, 0.9f, 0.9f, 1.0f);  // Near white
             case TAIGA:          return new Color(0.1f, 0.4f, 0.1f, 1.0f);  // Dark green
             case BOREAL_FOREST:  return new Color(0.2f, 0.4f, 0.2f, 1.0f);  // Deep green
-            case RIVER:          return new Color(0.0f, 0.7f, 1.0f, 1.0f);  // Light blue
+            case RIVER:          return new Color(0.0f, 0.0f, 0.8f, 1.0f);  // Now ocean color blue
             default:             return new Color(1.0f, 0.0f, 1.0f, 1.0f);  // Magenta for unknown
         }
     }
