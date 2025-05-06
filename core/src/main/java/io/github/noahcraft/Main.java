@@ -49,7 +49,7 @@ public class Main extends ApplicationAdapter {
         world.createWorld();
 
         // Create terrain renderer with adaptive step size
-        terrainRenderer = new TerrainRenderer(world, 40, 500);
+        terrainRenderer = new TerrainRenderer(world, 20, 500);
     }
 
     @Override

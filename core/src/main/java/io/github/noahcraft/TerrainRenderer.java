@@ -51,68 +51,78 @@ public class TerrainRenderer {
         mb.begin();
 
         // Create a smaller number of mesh parts (one per biome group)
-        int NUM_BIOME_GROUPS = 6; // Water, Mountains, Arid, Forests, Grasslands, Snow
+        int NUM_BIOME_GROUPS = 12; // Water, Mountains, Arid, Forests, Grasslands, Snow
         MeshPartBuilder[] builders = new MeshPartBuilder[NUM_BIOME_GROUPS];
 
-        // Create mesh parts for biome groups
-        for (int i = 0; i < NUM_BIOME_GROUPS; i++) {
-            Color color = getBiomeGroupColor(i);
+
+        Map<Integer, Boolean> biomeUsed = new HashMap<>();
+        for (int biome : ALL_BIOMES) {
+            biomeUsed.put(biome, false);
+        }
+        // Track statistics
+        int[] quadCounts = new int[NUM_BIOME_GROUPS];
+        for (int biome: ALL_BIOMES) {
+            Color color = getBiomeGroupColor(biome);
             Material mat = new Material(
+                //  ColorAttribute.
                 ColorAttribute.createDiffuse(color),
-                ColorAttribute.createSpecular(0.5f, 0.5f, 0.5f, 1.0f)
+                ColorAttribute.createSpecular(0.8f, 0.8f, 0.8f, 1.0f)
             );
 
-            builders[i] = mb.part(
-                "biome_group_" + i,
+            builders[biome] = mb.part(
+                "biome_group_" + biome,
                 GL20.GL_TRIANGLES,
                 VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal,
                 mat
             );
-            System.out.println("Created mesh part for biome group " + i);
-        }
+            System.out.println("Created mesh part for biome group " + biome);
+            // Generate terrain using adaptive step size
+            for (int x = 0; x < WORLD_WIDTH - adaptiveStep; x += adaptiveStep) {
+                for (int z = 0; z < WORLD_LENGTH - adaptiveStep; z += adaptiveStep) {
+                    // Only process this tile if it matches the current biome
+                    if (bm[x][z] != biome) continue;
 
-        // Track statistics
-        int[] quadCounts = new int[NUM_BIOME_GROUPS];
 
-        // Generate terrain using adaptive step size
-        for (int x = 0; x < WORLD_WIDTH - adaptiveStep; x += adaptiveStep) {
-            for (int z = 0; z < WORLD_LENGTH - adaptiveStep; z += adaptiveStep) {
-                // Get heights
-                float y00 = hm[x][z];
-                float y10 = hm[x + adaptiveStep][z];
-                float y11 = hm[x + adaptiveStep][z + adaptiveStep];
-                float y01 = hm[x][z + adaptiveStep];
+                    biomeUsed.put(biome, true);
 
-                // Get biome and determine its group
-                int biome = bm[x][z];
-                int biomeGroup = getBiomeGroup(biome, biomeGroups);
 
-                // Get builder for this biome group
-                MeshPartBuilder builder = builders[biomeGroup];
+                    // Get heights
+                    float y00 = hm[x][z];
+                    float y10 = hm[x + adaptiveStep][z];
+                    float y11 = hm[x + adaptiveStep][z + adaptiveStep];
+                    float y01 = hm[x][z + adaptiveStep];
 
-                // Count quad
-                quadCounts[biomeGroup]++;
+                    // Get biome and determine its group
 
-                // Calculate normal
-                Vector3 v1 = new Vector3(adaptiveStep, y10 - y00, 0);
-                Vector3 v2 = new Vector3(0, y01 - y00, adaptiveStep);
-                Vector3 normal = new Vector3(v2).crs(v1).nor();
 
-                // Add two triangles (a quad) with correct normals
-                // First triangle
-                float nx = normal.x, ny = normal.y, nz = normal.z;
-                builder.triangle(
-                    new MeshPartBuilder.VertexInfo().setPos(x, y00, z).setNor(nx, ny, nz),
-                    new MeshPartBuilder.VertexInfo().setPos(x, y01, z + adaptiveStep).setNor(nx, ny, nz),
-                    new MeshPartBuilder.VertexInfo().setPos(x + adaptiveStep, y11, z + adaptiveStep).setNor(nx, ny, nz)
-                );
 
-                // Second triangle
-                builder.triangle(
-                    new MeshPartBuilder.VertexInfo().setPos(x, y00, z).setNor(nx, ny, nz),
-                    new MeshPartBuilder.VertexInfo().setPos(x + adaptiveStep, y11, z + adaptiveStep).setNor(nx, ny, nz),
-                    new MeshPartBuilder.VertexInfo().setPos(x + adaptiveStep, y10, z).setNor(nx, ny, nz)
-                );
+                    // Get builder for this biome group
+                    MeshPartBuilder builder = builders[biome];
+
+                    // Count quad
+                    quadCounts[biome]++;
+
+                    // Calculate normal
+                    Vector3 v1 = new Vector3(adaptiveStep, y10 - y00, 0);
+                    Vector3 v2 = new Vector3(0, y01 - y00, adaptiveStep);
+                    Vector3 normal = new Vector3(v2).crs(v1).nor();
+
+                    // Add two triangles (a quad) with correct normals
+                    // First triangle
+                    float nx = normal.x, ny = normal.y, nz = normal.z;
+                    builder.triangle(
+                        new MeshPartBuilder.VertexInfo().setPos(x, y00, z).setNor(nx, ny, nz),
+                        new MeshPartBuilder.VertexInfo().setPos(x, y01, z + adaptiveStep).setNor(nx, ny, nz),
+                        new MeshPartBuilder.VertexInfo().setPos(x + adaptiveStep, y11, z + adaptiveStep).setNor(nx, ny, nz)
+                    );
+
+                    // Second triangle
+                    builder.triangle(
+                        new MeshPartBuilder.VertexInfo().setPos(x, y00, z).setNor(nx, ny, nz),
+                        new MeshPartBuilder.VertexInfo().setPos(x + adaptiveStep, y11, z + adaptiveStep).setNor(nx, ny, nz),
+                        new MeshPartBuilder.VertexInfo().setPos(x + adaptiveStep, y10, z).setNor(nx, ny, nz)
+                    );
+                }
             }
         }
 
@@ -154,17 +164,6 @@ public class TerrainRenderer {
         return 0; // Default to water if unknown
     }
 
-    private Color getBiomeGroupColor(int biomeGroup) {
-        switch (biomeGroup) {
-            case 0: return new Color(0.0f, 0.4f, 0.8f, 1.0f); // Water - blue
-            case 1: return new Color(0.5f, 0.5f, 0.5f, 1.0f); // Mountains - gray
-            case 2: return new Color(0.9f, 0.8f, 0.4f, 1.0f); // Arid - tan/yellow
-            case 3: return new Color(0.1f, 0.6f, 0.2f, 1.0f); // Forests - green
-            case 4: return new Color(0.4f, 0.8f, 0.3f, 1.0f); // Grasslands - light green
-            case 5: return new Color(0.9f, 0.9f, 0.9f, 1.0f); // Snow - white
-            default: return new Color(1.0f, 0.0f, 1.0f, 1.0f); // Unknown - magenta
-        }
-    }
 
     public void render(com.badlogic.gdx.graphics.g3d.ModelBatch batch,
                        com.badlogic.gdx.graphics.g3d.Environment env) {
@@ -174,4 +173,22 @@ public class TerrainRenderer {
     public void dispose() {
         instance.model.dispose();
     }
+    private Color getBiomeGroupColor(int biome) {
+        switch (biome) {
+            case OCEAN:          return new Color(0.0f, 0.0f, 0.8f, 1.0f);  // Deep blue
+            case MOUNTAIN:       return new Color(0.6f, 0.6f, 0.6f, 1.0f);  // Gray
+            case DESERT:         return new Color(1.0f, 0.9f, 0.5f, 1.0f);  // Sand color
+            case SAVANNA:        return new Color(0.9f, 0.7f, 0.4f, 1.0f);  // Light brown
+            case RAINFOREST:     return new Color(0.0f, 0.8f, 0.2f, 1.0f);  // Bright green
+            case PLAINS:         return new Color(0.5f, 0.8f, 0.3f, 1.0f);  // Light green
+            case GRASSLAND:      return new Color(0.3f, 0.7f, 0.3f, 1.0f);  // Medium green
+            case SEASONAL_FOREST:return new Color(0.1f, 0.6f, 0.1f, 1.0f);  // Forest green
+            case TUNDRA:         return new Color(0.9f, 0.9f, 0.9f, 1.0f);  // Near white
+            case TAIGA:          return new Color(0.1f, 0.4f, 0.1f, 1.0f);  // Dark green
+            case BOREAL_FOREST:  return new Color(0.2f, 0.4f, 0.2f, 1.0f);  // Deep green
+            case RIVER:          return new Color(0.0f, 0.7f, 1.0f, 1.0f);  // Light blue
+            default:             return new Color(1.0f, 0.0f, 1.0f, 1.0f);  // Magenta for unknown
+        }
+    }
+
 }

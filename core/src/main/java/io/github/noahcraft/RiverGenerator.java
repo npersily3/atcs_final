@@ -55,11 +55,7 @@ public class RiverGenerator {
 
             // Find a suitable starting point (higher elevation)
             Vector2 source = findRiverSource();
-            //     System.out.print(source.x + "   " + source.y + "  Destination  ");
-            // Find a suitable end point (lower elevation, ideally water)
-         //   Vector2 destination = findRiverDestination(source);
-            //   System.out.println(destination.x + "   " + destination.y);
-            // Generate river path with maximum iteration limit
+
             River river = generateRiverPath(source);
 
             if (river != null && river.points.size() > 5) { // Ensure river is substantial
@@ -70,10 +66,7 @@ public class RiverGenerator {
                 // applyRiverErosion(river, biomeMap, World.RIVER);
 
                 updateMap(river, World.RIVER);
-                // Log progress for large maps
-                if (width * length > 1000000 && successfulRivers % 10 == 0) {
-                    //    System.out.println("Generated " + successfulRivers + " rivers out of " + riverCount);
-                }
+
             }
         }
 
@@ -163,12 +156,12 @@ public class RiverGenerator {
         // Counter to prevent infinite loops
         int iterations = 0;
 
-        while (!openSet.isEmpty() && iterations < MAX_ITERATIONS) {
+        while (!openSet.isEmpty()) {
             iterations++;
             Node current = openSet.poll();
 
             // If we found destination or are close enough
-            if (isDestinationReached(current.position)) {
+            if (isDestinationReached(current.position) || iterations > MAX_ITERATIONS) {
                 // Reconstruct path
                 River river = new River(1); // Random width
                 Node node = current;
@@ -232,7 +225,7 @@ public class RiverGenerator {
 
         // No path found or max iterations reached
         if (iterations >= MAX_ITERATIONS) {
-            System.out.println("Warning: Max iterations reached while generating river path");
+           // System.out.println("Warning: Max iterations reached while generating river path");
         }
         return null;
     }

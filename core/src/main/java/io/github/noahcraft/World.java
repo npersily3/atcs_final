@@ -67,7 +67,7 @@ public class World {
        makeLakes();
         biomeMap = setBiomes();
         RiverGenerator riverGenerator = new RiverGenerator(heightMap,biomeMap,WORLD_WIDTH, WORLD_LENGTH);
-        riverGenerator.generateRivers(RIVER_AMOUNT);
+      //  riverGenerator.generateRivers(RIVER_AMOUNT);
 
     }
 
@@ -108,7 +108,7 @@ public class World {
     }
 
     public void initMaps() {
-        initHeightMap(.005, DEFAULT_HEIGHT_VARIANCE, DEFAULT_HEIGHT_INCREASE);
+        initHeightMap(.001, DEFAULT_HEIGHT_VARIANCE, DEFAULT_HEIGHT_INCREASE);
         initHeatMap(.001, DEFAULT_TEMP_VARIANCE, DEFAULT_TEMP_INCREASE);
         initMoistMap(.001,DEFAULT_MOIST_VARIANCE,DEFAULT_MOIST_INCREASE);
 
@@ -129,6 +129,7 @@ public class World {
                 if (elevation < OCEAN_THRESHOLD) {
 
                     biomeMap[x][y] = OCEAN;
+                    heightMap[x][y] = OCEAN_THRESHOLD;
                     continue;
                 }
 
