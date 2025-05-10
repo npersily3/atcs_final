@@ -35,7 +35,7 @@ public class GameScreen implements Screen {
         camera.position.set(World.WORLD_WIDTH/2, 2000f, World.WORLD_LENGTH/2 + 800f);
         camera.lookAt(World.WORLD_WIDTH/2, 0, World.WORLD_LENGTH/2);
         camera.near = 1f;
-        camera.far = 100000f;
+        camera.far = 300000f;
         camera.update();
 
         // Configure OpenGL

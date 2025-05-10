@@ -2,7 +2,6 @@ package main.java.io.github.noahcraft;
 
 import com.badlogic.gdx.math.Vector2;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.PriorityQueue;
 import java.util.Comparator;
@@ -333,7 +332,7 @@ public class RiverGenerator {
 
     private float heuristic(Vector2 a) {
         // Use Euclidean distance for better pathfinding
-        return (float) a.y - World.OCEAN_THRESHOLD;
+        return (float) a.y - World.SEA_LEVEL;
     }
 
     private String nodeKey(Node node) {

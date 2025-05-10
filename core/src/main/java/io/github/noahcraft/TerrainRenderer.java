@@ -129,7 +129,7 @@ public class TerrainRenderer {
         // Create model and instance
         Model model = mb.end();
         instance = new ModelInstance(model);
-        float scale = 10f;
+        float scale = 30f;
         instance.transform.scale(scale,scale,scale);
         // Print statistics
         System.out.println("Quad count per biome group:");

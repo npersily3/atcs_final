@@ -4,247 +4,268 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.Pixmap;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.graphics.g2d.GlyphLayout;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.ui.*;
-import com.badlogic.gdx.scenes.scene2d.ui.Label.LabelStyle;
-import com.badlogic.gdx.scenes.scene2d.ui.Slider.SliderStyle;
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton.TextButtonStyle;
-import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
-import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
-import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
-import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.utils.viewport.FitViewport;
 
 public class HomeScreen implements Screen {
     private final Main game;
     private Stage stage;
-    private Skin skin;
+    private ShapeRenderer shapeRenderer;
+    private BitmapFont font;
+    private GlyphLayout glyphLayout; // For measuring text
+
+    private final float WIDTH = 1280f;
+    private final float HEIGHT = 720f;
+
+    // UI Colors
+    private final Color BACKGROUND_COLOR = new Color(0.1f, 0.1f, 0.2f, 1f);
+    private final Color SLIDER_BG_COLOR = new Color(0.3f, 0.3f, 0.4f, 1f);
+    private final Color SLIDER_FILL_COLOR = new Color(0.4f, 0.65f, 0.9f, 1f);
+    private final Color SLIDER_KNOB_COLOR = new Color(0.9f, 0.9f, 0.9f, 1f);
+    private final Color BUTTON_COLOR = new Color(0.25f, 0.6f, 0.3f, 1f);
+    private final Color TEXT_COLOR = Color.WHITE;
+
+    // Layout constants
+    private final float TITLE_Y_BASELINE;
+    private final float SLIDER_START_Y = HEIGHT - 180; // Adjusted for more space from title
+    private final float SLIDER_SPACING = 50f;         // Adjusted spacing
+    private final float SLIDER_WIDTH = 450f;          // Slightly reduced width
+    private final float SLIDER_HEIGHT = 25f;          // Slightly reduced height
+
+    private final float SLIDER_AREA_CENTER_X = WIDTH / 2;
+    private final float LABEL_SLIDER_GAP = 20f; // Gap between label and slider
+    private final float SLIDER_VALUE_GAP = 20f; // Gap between slider and value text
+
+    // Calculate X positions based on SLIDER_AREA_CENTER_X
+    // Labels will be to the left of the sliders, values to the right.
+    // We'll calculate these dynamically based on text width for better alignment if needed,
+    // but for now, let's use fixed offsets from the slider itself.
+    private final float SLIDER_X; // Calculated in constructor based on SLIDER_WIDTH and SLIDER_AREA_CENTER_X
+    private final float LABEL_X; // Labels will be right-aligned before the slider
+    private final float VALUE_X;  // Values will be left-aligned after the slider
+
+
+    private final float BUTTON_Y = 70; // Adjusted Y
+    private final float BUTTON_WIDTH = 300; // Adjusted width
+    private final float BUTTON_HEIGHT = 50; // Adjusted height
+
+    // Slider state
+    private int activeSlider = -1;
+    private final Slider[] sliders = new Slider[7];
 
     public HomeScreen(final Main game) {
         this.game = game;
-        stage = new Stage(new ScreenViewport());
+        stage = new Stage(new FitViewport(WIDTH, HEIGHT));
         Gdx.input.setInputProcessor(stage);
 
-        // Create a programmatic skin for the UI
-        createSkin();
+        font = new BitmapFont();
+        shapeRenderer = new ShapeRenderer();
+        glyphLayout = new GlyphLayout();
 
-        // Create a table to layout the UI elements
-        Table table = new Table();
-        table.setFillParent(true);
-        stage.addActor(table);
+        TITLE_Y_BASELINE = HEIGHT - 70; // Adjusted for more space
 
-        // Add a title
-        Label titleLabel = new Label("World Generator Settings", skin, "title");
-        table.add(titleLabel).colspan(2).pad(20f);
-        table.row();
+        // Calculate slider X position to center it
+        SLIDER_X = SLIDER_AREA_CENTER_X - SLIDER_WIDTH / 2;
+        LABEL_X = SLIDER_X - 170f;
+        VALUE_X = SLIDER_X + SLIDER_WIDTH + 20f;
 
-        // Sea Level slider
-        addSlider(table, "Sea Level:", 0f, 1f, 0.01f, game.getWorldConfig().getSeaLevel(),
-            value -> game.getWorldConfig().setSeaLevel(value));
 
-        // Heat slider
-        addSlider(table, "Global Heat:", 0f, 1f, 0.01f, game.getWorldConfig().getHeat(),
-            value -> game.getWorldConfig().setHeat(value));
+        setupSliders();
+        setupGenerateButton();
+    }
 
-        // Rainfall slider
-        addSlider(table, "Global Rainfall:", 0f, 1f, 0.01f, game.getWorldConfig().getRainfall(),
-            value -> game.getWorldConfig().setRainfall(value));
+    private void setupSliders() {
+        sliders[0] = new Slider("Sea Level", 0f, 1f, 0.01f, game.getWorldConfig().getSeaLevel());
+        sliders[1] = new Slider("Global Heat", 0f, 1f, 0.01f, game.getWorldConfig().getHeat());
+        sliders[2] = new Slider("Global Rainfall", 0f, 1f, 0.01f, game.getWorldConfig().getRainfall());
+        sliders[3] = new Slider("River Amount", 0f, 100f, 1f, game.getWorldConfig().getRiverAmount()); // Assuming int
+        sliders[4] = new Slider("Elevation Variance", 0f, 1f, 0.01f, game.getWorldConfig().getElevationVariance());
+        sliders[5] = new Slider("Heat Variance", 0f, 1f, 0.01f, game.getWorldConfig().getHeatVariance());
+        sliders[6] = new Slider("Rain Variance", 0f, 1f, 0.01f, game.getWorldConfig().getRainVariance());
 
-        // River Amount slider
-        addSlider(table, "River Amount:", 0, 100, 1, game.getWorldConfig().getRiverAmount(),
-            value -> game.getWorldConfig().setRiverAmount((int)value));
+        for (int i = 0; i < sliders.length; i++) {
+            sliders[i].x = SLIDER_X;
+            sliders[i].y = SLIDER_START_Y - (i * SLIDER_SPACING);
+            sliders[i].width = SLIDER_WIDTH;
+            sliders[i].height = SLIDER_HEIGHT;
+        }
 
-        // Elevation Variance slider
-        addSlider(table, "Elevation Variance:", 0f, 1f, 0.01f, game.getWorldConfig().getElevationVariance(),
-            value -> game.getWorldConfig().setElevationVariance(value));
-
-        // Heat Variance slider
-        addSlider(table, "Heat Variance:", 0f, 1f, 0.01f, game.getWorldConfig().getHeatVariance(),
-            value -> game.getWorldConfig().setHeatVariance(value));
-
-        // Rain Variance slider
-        addSlider(table, "Rain Variance:", 0f, 1f, 0.01f, game.getWorldConfig().getRainVariance(),
-            value -> game.getWorldConfig().setRainVariance(value));
-
-        // Add a separator
-        table.add(new Label("", skin)).colspan(2).padTop(20f);
-        table.row();
-
-        // Generate World button
-        TextButton generateButton = new TextButton("Generate World", skin);
-        table.add(generateButton).colspan(2).pad(30f).width(250f).height(60f);
-
-        // Add listener for Generate button
-        generateButton.addListener(new ChangeListener() {
+        stage.addListener(new ClickListener() {
             @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                game.startGame();
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                for (int i = 0; i < sliders.length; i++) {
+                    if (isInSlider(sliders[i], x, y)) {
+                        activeSlider = i;
+                        updateSliderValue(activeSlider, x);
+                        return true;
+                    }
+                }
+                return super.touchDown(event, x, y, pointer, button);
+            }
+
+            @Override
+            public void touchUp(InputEvent event, float x, float y, int pointer, int button) {
+                activeSlider = -1;
+                super.touchUp(event, x, y, pointer, button);
+            }
+
+            @Override
+            public void touchDragged(InputEvent event, float x, float y, int pointer) {
+                if (activeSlider >= 0) {
+                    updateSliderValue(activeSlider, x);
+                }
+                super.touchDragged(event, x, y, pointer);
             }
         });
     }
 
-    /**
-     * Helper method to create and add a slider with a label to the table
-     */
-    private void addSlider(Table table, String labelText, float min, float max, float step,
-                           float initialValue, SliderCallback callback) {
-        // Add the label
-        Label label = new Label(labelText, skin);
-        table.add(label).padRight(10f).width(150f).right();
-
-        // Create a container for the slider and value label
-        Table sliderContainer = new Table();
-
-        // Create the slider
-        final Slider slider = new Slider(min, max, step, false, skin);
-        slider.setValue(initialValue);
-        sliderContainer.add(slider).width(300f);
-
-        // Create value label to show the current value
-        final Label valueLabel = new Label(String.format("%.2f", initialValue), skin);
-        sliderContainer.add(valueLabel).width(80f).padLeft(10f);
-
-        // Add the container to the main table
-        table.add(sliderContainer).padBottom(15f).left();
-        table.row();
-
-        // Add listener to update the config and value label when slider changes
-        slider.addListener(new ChangeListener() {
+    private void setupGenerateButton() {
+        stage.addListener(new ClickListener() {
             @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                float value = slider.getValue();
-                callback.setValue(value);
-
-                // Update the value label (format depends on whether it's an integer or float)
-                if (step >= 1f) {
-                    valueLabel.setText(String.format("%d", (int)value));
-                } else {
-                    valueLabel.setText(String.format("%.2f", value));
+            public void clicked(InputEvent event, float x, float y) {
+                float buttonRectX = WIDTH / 2 - BUTTON_WIDTH / 2;
+                if (x >= buttonRectX && x <= buttonRectX + BUTTON_WIDTH &&
+                    y >= BUTTON_Y && y <= BUTTON_Y + BUTTON_HEIGHT) {
+                    game.startGame();
                 }
             }
         });
     }
 
-    /**
-     * Functional interface for slider value change callbacks
-     */
-    private interface SliderCallback {
-        void setValue(float value);
+    private boolean isInSlider(Slider slider, float x, float y) {
+        // Increased padding for easier touch interaction
+        float padding = 15f;
+        return x >= slider.x - padding && x <= slider.x + slider.width + padding &&
+            y >= slider.y - padding && y <= slider.y + slider.height + padding;
     }
 
-    /**
-     * Creates a simple programmatic skin for the UI
-     /**
-     * Creates a simple programmatic skin for the UI
-     */
-    private void createSkin() {
-        skin = new Skin();
+    private void updateSliderValue(int sliderIndex, float touchX) {
+        if (sliderIndex < 0 || sliderIndex >= sliders.length) return;
+        Slider slider = sliders[sliderIndex];
+        float effectiveX = MathUtils.clamp(touchX, slider.x, slider.x + slider.width);
+        float percentage = (effectiveX - slider.x) / slider.width;
+        float newValue = slider.min + percentage * (slider.max - slider.min);
+        if (slider.step > 0) {
+            newValue = Math.round(newValue / slider.step) * slider.step;
+        }
+        slider.value = MathUtils.clamp(newValue, slider.min, slider.max);
 
-        // Add a bitmap font to the skin
-        skin.add("default", new BitmapFont());
-
-        // Create a 1x1 white texture for our UI elements
-        Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
-        pixmap.setColor(Color.WHITE);
-        pixmap.fill();
-        Texture texture = new Texture(pixmap);
-        pixmap.dispose();
-
-        // Add texture to skin
-        skin.add("white", texture);
-
-        // Create drawables for UI elements
-        TextureRegion region = new TextureRegion(texture);
-        TextureRegionDrawable drawable = new TextureRegionDrawable(region);
-
-        // Button styles
-        TextureRegionDrawable buttonUp = new TextureRegionDrawable(region);
-        buttonUp.setMinWidth(30);
-        buttonUp.setMinHeight(30);
-        buttonUp.setLeftWidth(10);
-        buttonUp.setRightWidth(10);
-        buttonUp.setTopHeight(10);
-        buttonUp.setBottomHeight(10);
-
-        TextureRegionDrawable buttonDown = new TextureRegionDrawable(region);
-        buttonDown.setMinWidth(30);
-        buttonDown.setMinHeight(30);
-
-        TextureRegionDrawable sliderBg = new TextureRegionDrawable(region);
-        sliderBg.setMinWidth(10);
-        sliderBg.setMinHeight(4);
-
-        TextureRegionDrawable sliderKnob = new TextureRegionDrawable(region);
-        sliderKnob.setMinWidth(20);
-        sliderKnob.setMinHeight(20);
-
-        // Store the drawables directly first
-        skin.add("button-up", buttonUp); // Default to Drawable
-
-        skin.add("button-down", buttonDown);
-        skin.add("slider-bg", sliderBg);
-        skin.add("slider-knob", sliderKnob);
-
-
-        // Create button style
-        TextButtonStyle textButtonStyle = new TextButtonStyle();
-        textButtonStyle.up = skin.getDrawable("button-up");
-        textButtonStyle.down = skin.getDrawable("button-down");
-        textButtonStyle.font = skin.getFont("default");
-        skin.add("default", textButtonStyle);
-
-        // Create label style
-        LabelStyle labelStyle = new LabelStyle();
-        labelStyle.font = skin.getFont("default");
-        skin.add("default", labelStyle);
-
-        // Create title style (exactly the same for now, could be different)
-        skin.add("title", labelStyle);
-
-        // Create slider style
-        SliderStyle sliderStyle = new SliderStyle();
-        sliderStyle.background = skin.getDrawable("slider-bg");
-        sliderStyle.knob = skin.getDrawable("slider-knob");
-        skin.add("default-horizontal", sliderStyle);
-    }
-    @Override
-    public void show() {
-        // Called when this screen becomes the current screen
-        Gdx.input.setInputProcessor(stage);
+        switch (sliderIndex) {
+            case 0: game.getWorldConfig().setSeaLevel(slider.value); break;
+            case 1: game.getWorldConfig().setHeat(slider.value); break;
+            case 2: game.getWorldConfig().setRainfall(slider.value); break;
+            case 3: game.getWorldConfig().setRiverAmount((int)slider.value); break;
+            case 4: game.getWorldConfig().setElevationVariance(slider.value); break;
+            case 5: game.getWorldConfig().setHeatVariance(slider.value); break;
+            case 6: game.getWorldConfig().setRainVariance(slider.value); break;
+        }
     }
 
     @Override
     public void render(float delta) {
-        // Clear the screen with a dark background
-        Gdx.gl.glClearColor(0.1f, 0.1f, 0.15f, 1.0f);
+        Gdx.gl.glClearColor(BACKGROUND_COLOR.r, BACKGROUND_COLOR.g, BACKGROUND_COLOR.b, BACKGROUND_COLOR.a);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-
-        // Update and draw the stage
         stage.act(delta);
-        stage.draw();
+
+        shapeRenderer.setProjectionMatrix(stage.getCamera().combined);
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+
+        for (Slider slider : sliders) {
+            shapeRenderer.setColor(SLIDER_BG_COLOR);
+            shapeRenderer.rect(slider.x, slider.y, slider.width, slider.height);
+            float fillPercentage = (slider.value - slider.min) / (slider.max - slider.min);
+            float fillWidth = MathUtils.clamp(fillPercentage * slider.width, 0, slider.width);
+            shapeRenderer.setColor(SLIDER_FILL_COLOR);
+            shapeRenderer.rect(slider.x, slider.y, fillWidth, slider.height);
+            shapeRenderer.setColor(SLIDER_KNOB_COLOR);
+            float knobVisualWidth = 10f;
+            float knobVisualHeightPadding = 5f; // How much taller the knob is than the track
+            float knobX = MathUtils.clamp(slider.x + fillWidth - (knobVisualWidth / 2), slider.x, slider.x + slider.width - knobVisualWidth);
+            shapeRenderer.rect(knobX, slider.y - knobVisualHeightPadding, knobVisualWidth, slider.height + (knobVisualHeightPadding * 2));
+        }
+
+        float buttonRectX = WIDTH / 2 - BUTTON_WIDTH / 2;
+        shapeRenderer.setColor(BUTTON_COLOR);
+        shapeRenderer.rect(buttonRectX, BUTTON_Y, BUTTON_WIDTH, BUTTON_HEIGHT);
+        shapeRenderer.end();
+
+        stage.getBatch().begin();
+        font.setColor(TEXT_COLOR);
+
+        // Title
+        font.getData().setScale(1f); // Slightly larger title
+        String title = "WORLD GENERATOR";
+        glyphLayout.setText(font, title);
+        font.draw(stage.getBatch(), glyphLayout, WIDTH / 2 - glyphLayout.width / 2, TITLE_Y_BASELINE);
+
+        // Slider labels and values
+        font.getData().setScale(1.1f); // Slightly smaller for more compact look
+
+        // ...
+
+        for (int i = 0; i < sliders.length; i++) {
+            Slider slider = sliders[i];
+
+
+            // --- Label ---
+            glyphLayout.setText(font, slider.label);
+            // Vertical center of the slider track
+            float trackCenterY = slider.y + (slider.height / 2);
+            // Baseline Y: center text vertically on the track
+            float labelBaselineY = trackCenterY + (glyphLayout.height / 2);
+            // Right-align label to LABEL_X
+            font.draw(stage.getBatch(), glyphLayout, LABEL_X - glyphLayout.width,  470-43*i);
+
+            // --- Value ---
+            String valueText = slider.step >= 1f && (slider.step % 1 == 0) ?
+                String.format("%d", (int)slider.value) :
+                String.format("%.2f", slider.value);
+            glyphLayout.setText(font, valueText);
+            // Same baseline Y as label for vertical alignment
+            float valueBaselineY = trackCenterY + (glyphLayout.height / 2);
+            // Left-align value to VALUE_X
+            font.draw(stage.getBatch(), glyphLayout, 550, 470-43*i);
+        }
+
+// ...
+
+
+        // Generate button text (Centered in button)
+        font.getData().setScale(1.2f); // Adjusted scale
+        String buttonText = "GENERATE WORLD";
+        glyphLayout.setText(font, buttonText);
+        float buttonContentCenterX = buttonRectX + BUTTON_WIDTH / 2;
+        float buttonContentCenterY = BUTTON_Y + BUTTON_HEIGHT / 2;
+        float finalButtonTextX = buttonContentCenterX - glyphLayout.width / 2;
+        float finalButtonTextY_Baseline = buttonContentCenterY + glyphLayout.height / 2; // Adjusted for baseline
+        font.draw(stage.getBatch(), glyphLayout, 325, 85);
+
+        stage.getBatch().end();
     }
 
-    @Override
-    public void resize(int width, int height) {
-        stage.getViewport().update(width, height, true);
+    private static class Slider {
+        String label;
+        float x, y, width, height;
+        float min, max, step, value;
+        public Slider(String label, float min, float max, float step, float initialValue) {
+            this.label = label; this.min = min; this.max = max; this.step = step; this.value = initialValue;
+        }
     }
 
-    @Override
-    public void pause() {}
-
-    @Override
-    public void resume() {}
-
-    @Override
-    public void hide() {}
-
-    @Override
-    public void dispose() {
-        stage.dispose();
-        skin.dispose();
+    @Override public void show() { Gdx.input.setInputProcessor(stage); }
+    @Override public void resize(int width, int height) { stage.getViewport().update(width, height, true); }
+    @Override public void pause() {}
+    @Override public void resume() {}
+    @Override public void hide() {}
+    @Override public void dispose() {
+        if (stage != null) stage.dispose();
+        if (shapeRenderer != null) shapeRenderer.dispose();
+        if (font != null) font.dispose();
     }
 }
