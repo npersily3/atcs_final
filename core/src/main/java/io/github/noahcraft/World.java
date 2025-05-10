@@ -186,7 +186,7 @@ public class World {
                 heightMap[i][j] = Math.max(0, Math.min(WORLD_HEIGHT, height));
             }
         }
-        System.out.println(elevationVariance + "   " + WORLD_HEIGHT/2 + "    " + seaLevel);
+       // System.out.println(elevationVariance + "   " + WORLD_HEIGHT/2 + "    " + seaLevel);
 
     }
 

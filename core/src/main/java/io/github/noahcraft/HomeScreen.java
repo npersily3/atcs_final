@@ -81,7 +81,7 @@ public class HomeScreen implements Screen {
     }
 
     private void setupSliders() {
-        sliders[0] = new Slider("Sea Level", 0f, 1f, 0.01f, game.getWorldConfig().getSeaLevel());
+        sliders[0] = new Slider("Height Increase", 0f, 1f, 0.01f, game.getWorldConfig().getSeaLevel());
         sliders[1] = new Slider("Global Heat", 0f, 1f, 0.01f, game.getWorldConfig().getHeat());
         sliders[2] = new Slider("Global Rainfall", 0f, 1f, 0.01f, game.getWorldConfig().getRainfall());
         sliders[3] = new Slider("River Amount", 0f, 100f, 1f, game.getWorldConfig().getRiverAmount()); // Assuming int
